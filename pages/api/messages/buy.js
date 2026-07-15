@@ -1,6 +1,7 @@
 const { getDb, get, run } = require("../../../lib/db");
 const { increasePrice, MIN_PRICE } = require("../../../lib/price");
 const { updateRecords } = require("../../../lib/records");
+const { broadcast } = require("../events");
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -49,6 +50,15 @@ export default async function handler(req, res) {
       "SELECT COUNT(*) as count FROM purchases WHERE created_at > datetime('now', '-1 day')"
     );
     const activityLevel = recentPurchases.count >= 10 ? "high" : recentPurchases.count >= 3 ? "medium" : "low";
+
+    // Broadcast update to all connected clients
+    broadcast("message_update", {
+      text,
+      owner: { nickname: nickname, id: user.id },
+      price: String(newPrice),
+      purchased_at: new Date().toISOString(),
+      activity: activityLevel,
+    });
 
     res.status(200).json({
       ok: true,

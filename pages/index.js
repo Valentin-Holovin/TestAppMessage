@@ -4,11 +4,14 @@ import { useRouter } from "next/router";
 import { Button } from "../components/ui/button";
 
 function StatCounter({ value, label, delay }) {
-  const [count, setCount] = useState(0);
+  const [display, setDisplay] = useState("0");
   const safeValue = value ?? 0;
-  const target = typeof safeValue === "number" ? safeValue : parseInt(String(safeValue).replace(/[^0-9]/g, "")) || 0;
   const prefix = String(safeValue).startsWith("$") ? "$" : "";
   const suffix = String(safeValue).includes("k") ? "k" : String(safeValue).includes("M") ? "M" : "";
+  const numStr = String(safeValue).replace(/[^0-9.]/g, "");
+  const hasDecimal = numStr.includes(".");
+  const target = parseFloat(numStr) || 0;
+  const decimals = hasDecimal ? (numStr.split(".")[1] || "").length : 0;
 
   useEffect(() => {
     const duration = 1500;
@@ -18,22 +21,32 @@ function StatCounter({ value, label, delay }) {
         const elapsed = Date.now() - startTime;
         const progress = Math.min(elapsed / duration, 1);
         const eased = 1 - Math.pow(1 - progress, 3);
-        setCount(Math.floor(eased * target));
+        const current = eased * target;
+        setDisplay(decimals > 0 ? current.toFixed(decimals) : Math.floor(current).toLocaleString());
         if (progress >= 1) clearInterval(interval);
       }, 16);
       return () => clearInterval(interval);
     }, delay);
     return () => clearTimeout(timer);
-  }, [target, delay]);
+  }, [target, delay, decimals]);
 
   return (
     <div className="text-center">
       <p className="text-3xl font-bold text-white sm:text-4xl">
-        {prefix}{count.toLocaleString()}{suffix}
+        {prefix}{display}{suffix}
       </p>
       <p className="mt-2 text-sm text-white/40">{label}</p>
     </div>
   );
+}
+
+function formatCountdown(seconds) {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  if (h > 0) return `${h}h ${m}m ${s}s`;
+  if (m > 0) return `${m}m ${s}s`;
+  return `${s}s`;
 }
 
 export default function Home() {
@@ -129,39 +142,84 @@ export default function Home() {
             basePrice: data.message.basePrice,
             purchased_at: data.message.purchased_at,
             held: data.message.held,
+            heldSeconds: data.message.heldSeconds,
             countdown: data.message.countdown,
           });
           setStats(data.stats);
           setActivity(data.activity);
           setRecords(data.records);
         }
-      } catch {
-        // keep defaults
-      }
+      } catch {}
     }
     fetchCurrent();
+
+    // SSE for real-time updates
+    const evtSource = new EventSource("/api/events");
+
+    evtSource.addEventListener("message_update", (e) => {
+      const data = JSON.parse(e.data);
+      setCurrent((prev) => ({
+        ...prev,
+        text: data.text,
+        owner: data.owner,
+        price: data.price,
+        basePrice: parseFloat(data.price),
+        purchased_at: data.purchased_at,
+        held: "0s",
+        heldSeconds: 0,
+      }));
+      if (data.activity) setActivity(data.activity);
+      // Refresh full data after message update
+      fetchCurrent();
+    });
+
+    evtSource.onerror = () => {
+      evtSource.close();
+      // Reconnect after 5 seconds
+      setTimeout(() => {
+        window.location.reload();
+      }, 5000);
+    };
+
+    return () => evtSource.close();
   }, []);
 
-  // Refresh price every 60 seconds for countdown
+  // Client-side timer for held time and countdown (updates every second)
+  const [heldDisplay, setHeldDisplay] = useState("—");
+  const [countdownDisplay, setCountdownDisplay] = useState(null);
+
   useEffect(() => {
     if (!current.purchased_at) return;
 
-    async function refreshPrice() {
-      try {
-        const res = await fetch("/api/messages/current");
-        const data = await res.json();
-        if (data.message) {
-          setCurrent((prev) => ({
-            ...prev,
-            price: String(data.message.price),
-            held: data.message.held,
-            countdown: data.message.countdown,
-          }));
-        }
-      } catch {}
+    function formatHeld(seconds) {
+      const d = Math.floor(seconds / 86400);
+      const h = Math.floor((seconds % 86400) / 3600);
+      const m = Math.floor((seconds % 3600) / 60);
+      const s = Math.floor(seconds % 60);
+      if (d > 0) return `${d}d ${h}h ${m}m`;
+      if (h > 0) return `${h}h ${m}m ${s}s`;
+      if (m > 0) return `${m}m ${s}s`;
+      return `${s}s`;
     }
 
-    const interval = setInterval(refreshPrice, 60000);
+    function tick() {
+      const heldSec = (Date.now() - new Date(current.purchased_at).getTime()) / 1000;
+      setHeldDisplay(formatHeld(Math.max(0, heldSec)));
+
+      // Calculate countdown client-side
+      const hours = heldSec / 3600;
+      if (hours < 6) {
+        const secUntil = Math.max(0, Math.round((6 - hours) * 3600));
+        setCountdownDisplay({ label: "Decrease starts in", seconds: secUntil });
+      } else {
+        const currentHour = Math.floor(hours);
+        const secUntil = Math.max(0, Math.round((currentHour + 1) * 3600 - heldSec));
+        setCountdownDisplay({ label: "Next decrease in", seconds: secUntil });
+      }
+    }
+
+    tick();
+    const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
   }, [current.purchased_at]);
 
@@ -258,7 +316,7 @@ export default function Home() {
                     <svg className="h-4 w-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span className="text-sm font-medium text-white/70">{current.held}</span>
+                    <span className="text-sm font-medium text-white/70">{heldDisplay}</span>
                   </div>
                 </div>
               </div>
@@ -281,12 +339,12 @@ export default function Home() {
                 </p>
 
                 {/* Countdown */}
-                {current.countdown && (
+                {countdownDisplay && (
                   <div className="mt-4 flex items-center gap-2 text-sm text-amber-400">
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span>{current.countdown.label}</span>
+                    <span>{countdownDisplay.label} {formatCountdown(countdownDisplay.seconds)}</span>
                   </div>
                 )}
 

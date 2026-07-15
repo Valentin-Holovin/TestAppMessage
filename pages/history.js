@@ -24,7 +24,13 @@ export default function History() {
   return (
     <>
       <Head>
-        <title>History — OneMessage</title>
+        <title>Message History — OneMessage</title>
+        <meta name="description" content="See the complete history of message ownership on OneMessage. Every purchase, every owner, every price." />
+        <link rel="canonical" href="https://onemessage.io/history" />
+
+        <meta property="og:title" content="Message History — OneMessage" />
+        <meta property="og:description" content="See the complete history of message ownership on OneMessage. Every purchase, every owner, every price." />
+        <meta property="og:url" content="https://onemessage.io/history" />
       </Head>
 
       <main className="noise relative min-h-screen">

@@ -41,7 +41,10 @@ export default function Register() {
   return (
     <>
       <Head>
-        <title>Register — OneMessage</title>
+        <title>Create Account — OneMessage</title>
+        <meta name="description" content="Create a OneMessage account to buy and own the internet's single public message." />
+        <meta name="robots" content="noindex" />
+        <link rel="canonical" href="https://onemessage.io/register" />
       </Head>
 
       <main className="noise relative flex min-h-screen items-center justify-center px-4 py-10">

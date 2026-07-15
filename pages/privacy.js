@@ -16,6 +16,8 @@ export default function Privacy() {
     <>
       <Head>
         <title>Privacy Policy — OneMessage</title>
+        <meta name="description" content="Read the Privacy Policy for OneMessage. How we collect, use, and protect your data." />
+        <link rel="canonical" href="https://onemessage.io/privacy" />
       </Head>
 
       <main className="noise relative min-h-screen">

@@ -37,6 +37,12 @@ export default function Leaderboard() {
     <>
       <Head>
         <title>Leaderboard — OneMessage</title>
+        <meta name="description" content="See the top message owners on OneMessage. Ranked by total value and number of messages owned." />
+        <link rel="canonical" href="https://onemessage.io/leaderboard" />
+
+        <meta property="og:title" content="Leaderboard — OneMessage" />
+        <meta property="og:description" content="See the top message owners on OneMessage. Ranked by total value and number of messages owned." />
+        <meta property="og:url" content="https://onemessage.io/leaderboard" />
       </Head>
 
       <main className="noise relative min-h-screen">

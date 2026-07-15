@@ -16,6 +16,8 @@ export default function Terms() {
     <>
       <Head>
         <title>Terms of Service — OneMessage</title>
+        <meta name="description" content="Read the Terms of Service for OneMessage. Legal framework for message ownership and platform governance." />
+        <link rel="canonical" href="https://onemessage.io/terms" />
       </Head>
 
       <main className="noise relative min-h-screen">

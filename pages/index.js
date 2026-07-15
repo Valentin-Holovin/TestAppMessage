@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { Button } from "../components/ui/button";
@@ -232,9 +233,17 @@ export default function Home() {
   const act = activityConfig[activity] || activityConfig.low;
 
   return (
-    <main className="noise relative min-h-screen">
-      <div className="ambient-blob-1" />
-      <div className="ambient-blob-2" />
+    <>
+      <Head>
+        <title>OneMessage — One message for the entire internet</title>
+        <meta name="description" content="Buy and own the single public message visible to everyone. Transparent pricing, fair governance, full history." />
+        <meta name="keywords" content="OneMessage, buy message, own message, internet message, public message, digital real estate" />
+        <link rel="canonical" href="https://onemessage.io" />
+      </Head>
+
+      <main className="noise relative min-h-screen">
+        <div className="ambient-blob-1" />
+        <div className="ambient-blob-2" />
 
       <div className="relative z-10 mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
         {/* Header */}
@@ -564,6 +573,7 @@ export default function Home() {
           </div>
         </div>
       )}
-    </main>
+      </main>
+    </>
   );
 }

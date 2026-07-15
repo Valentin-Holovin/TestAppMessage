@@ -42,6 +42,9 @@ export default function Login() {
     <>
       <Head>
         <title>Sign in — OneMessage</title>
+        <meta name="description" content="Sign in to your OneMessage account to buy and manage messages." />
+        <meta name="robots" content="noindex" />
+        <link rel="canonical" href="https://onemessage.io/login" />
       </Head>
 
       <main className="noise relative flex min-h-screen items-center justify-center px-4 py-10">

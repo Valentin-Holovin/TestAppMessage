@@ -46,6 +46,12 @@ export default function About() {
     <>
       <Head>
         <title>About — OneMessage</title>
+        <meta name="description" content="Learn about OneMessage — a platform for transparent, fair, and governed public messaging." />
+        <link rel="canonical" href="https://onemessage.io/about" />
+
+        <meta property="og:title" content="About — OneMessage" />
+        <meta property="og:description" content="Learn about OneMessage — a platform for transparent, fair, and governed public messaging." />
+        <meta property="og:url" content="https://onemessage.io/about" />
       </Head>
 
       <main className="noise relative min-h-screen">

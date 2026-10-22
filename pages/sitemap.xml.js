@@ -6,7 +6,6 @@ Sitemap.getInitialProps = async ({ res }) => {
   const pages = [
     { url: baseUrl, changefreq: "daily", priority: "1.0" },
     { url: `${baseUrl}/leaderboard`, changefreq: "daily", priority: "0.8" },
-    { url: `${baseUrl}/history`, changefreq: "daily", priority: "0.8" },
     { url: `${baseUrl}/about`, changefreq: "monthly", priority: "0.6" },
     { url: `${baseUrl}/terms`, changefreq: "monthly", priority: "0.4" },
     { url: `${baseUrl}/privacy`, changefreq: "monthly", priority: "0.4" },

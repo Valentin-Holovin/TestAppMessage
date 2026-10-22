@@ -24,6 +24,7 @@ yarn-error.log*
 
 # database
 data.db
+data.db.tmp
 data.db-shm
 data.db-wal
 

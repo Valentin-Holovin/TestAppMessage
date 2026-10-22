@@ -25,10 +25,10 @@ export default function Privacy() {
         <div className="ambient-blob-2" />
 
         <div className="relative z-10 mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
-          <header className="animate-fade-in-up glass rounded-3xl px-6 py-6 sm:px-8">
+          <header className="animate-fade-in-up glass rounded-none px-6 py-6 sm:px-8">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <Link href="/" className="flex items-center gap-3">
-                <div className="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-sm font-bold text-white shadow-[0_0_20px_rgba(99,102,241,0.4)]">1M</div>
+                <div className="grid h-10 w-10 place-items-center rounded-none pixel-fill   text-sm font-bold text-white ">1M</div>
                 <span className="text-lg font-bold text-white">OneMessage</span>
               </Link>
               <Link href="/"><Button variant="ghost" size="sm">
@@ -39,7 +39,7 @@ export default function Privacy() {
           </header>
 
           <div className="animate-fade-in-up-delay-1 mt-12 text-center">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/[0.06] px-5 py-2 text-sm font-medium text-indigo-300">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-none bg-white/[0.06] px-5 py-2 text-sm font-medium text-lime-300">
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg>
               Privacy Policy
             </div>
@@ -53,17 +53,17 @@ export default function Privacy() {
 
           <div className="mt-12 space-y-4">
             {sections.map((s, i) => (
-              <div key={i} className={`animate-fade-in-up-delay-${Math.min(i + 2, 3)} glass group rounded-3xl p-6 sm:p-7 transition-all duration-300 hover:border-indigo-400/20`}>
+              <div key={i} className={`animate-fade-in-up-delay-${Math.min(i + 2, 3)} glass group rounded-none p-6 sm:p-7 transition-all duration-300 hover:border-lime-300`}>
                 <h2 className="text-lg font-bold text-white">{s.title}</h2>
                 <p className="mt-3 text-sm leading-relaxed text-white/40">{s.desc}</p>
               </div>
             ))}
           </div>
 
-          <div className="mt-12 glass rounded-3xl px-6 py-6 sm:px-8">
+          <div className="mt-12 glass rounded-none px-6 py-6 sm:px-8">
             <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
               <p className="text-sm text-white/30">For more information about service terms?</p>
-              <Link href="/terms" className="text-sm font-medium text-indigo-400 transition hover:text-indigo-300">View Terms of Service</Link>
+              <Link href="/terms" className="text-sm font-medium text-lime-300 transition hover:text-lime-300">View Terms of Service</Link>
             </div>
           </div>
         </div>

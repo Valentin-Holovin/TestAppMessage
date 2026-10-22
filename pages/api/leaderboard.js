@@ -1,6 +1,7 @@
 const { getDb, get, all } = require("../../lib/db");
 
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "no-store");
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
   }
@@ -9,17 +10,10 @@ export default async function handler(req, res) {
     await getDb();
 
     const leaders = all(`
-      SELECT
-        u.id,
-        u.nickname,
-        COUNT(DISTINCT p.message_id) as message_count,
-        COALESCE(SUM(p.price), 0) as total_spent,
-        COUNT(p.id) as purchase_count
-      FROM users u
-      LEFT JOIN purchases p ON p.buyer_id = u.id
-      GROUP BY u.id
-      ORDER BY total_spent DESC
-      LIMIT 20
+      SELECT u.id, u.nickname, COUNT(b.id) AS message_count,
+        SUM(b.price_cents) / 100.0 AS total_spent, COUNT(b.id) AS purchase_count
+      FROM users u JOIN board_messages b ON b.owner_id = u.id
+      GROUP BY u.id ORDER BY message_count DESC, total_spent DESC, u.id ASC LIMIT 20
     `);
 
     const enriched = leaders.map((l, i) => ({
@@ -34,7 +28,7 @@ export default async function handler(req, res) {
 
     res.status(200).json({ leaders: enriched });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Unable to load rankings." });
   }
 }
 

@@ -5,31 +5,24 @@ export default function Document() {
     <Html lang="en">
       <Head>
         {/* Favicon */}
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>" />
-
-        {/* Fonts */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23101110'/><path d='M20 20h60v45H50L35 80V65H20z' fill='%23c4f563'/></svg>" />
 
         {/* Global Meta */}
-        <meta name="theme-color" content="#050a18" />
+        <meta name="theme-color" content="#101110" />
         <meta name="robots" content="index, follow" />
         <meta name="author" content="OneMessage" />
 
         {/* Open Graph */}
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="OneMessage" />
-        <meta property="og:title" content="OneMessage — One message for the entire internet" />
-        <meta property="og:description" content="Buy and own the single public message visible to everyone. Transparent pricing, fair governance, full history." />
-        <meta property="og:image" content="/og-image.png" />
+        <meta property="og:title" content="OneMessage — A place for your words" />
+        <meta property="og:description" content="A shared pixel board for your words. Explore temporary and permanent placements, publish a message, and share its link." />
         <meta property="og:url" content="https://onemessage.io" />
 
         {/* Twitter */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="OneMessage — One message for the entire internet" />
-        <meta name="twitter:description" content="Buy and own the single public message visible to everyone. Transparent pricing, fair governance, full history." />
-        <meta name="twitter:image" content="/og-image.png" />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="OneMessage — A place for your words" />
+        <meta name="twitter:description" content="A shared pixel board for your words. Explore temporary and permanent placements, publish a message, and share its link." />
 
         {/* JSON-LD Structured Data */}
         <script
@@ -40,14 +33,9 @@ export default function Document() {
               "@type": "WebApplication",
               name: "OneMessage",
               url: "https://onemessage.io",
-              description: "Buy and own the single public message visible to everyone on the internet.",
+              description: "Publish a message on a shared pixel board and share its link.",
               applicationCategory: "SocialNetworkingApplication",
               operatingSystem: "Web",
-              offers: {
-                "@type": "Offer",
-                price: "1.00",
-                priceCurrency: "USD",
-              },
             }),
           }}
         />

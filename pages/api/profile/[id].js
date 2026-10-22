@@ -1,7 +1,7 @@
 const { getDb, get, all } = require("../../../lib/db");
-const { getHeldSeconds, formatHeld } = require("../../../lib/price");
 
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "no-store");
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
   }
@@ -9,9 +9,10 @@ export default async function handler(req, res) {
   try {
     await getDb();
     const { id } = req.query;
+    if (typeof id !== "string") return res.status(400).json({ error: "Invalid profile." });
 
     const user = get(
-      "SELECT id, nickname, email, avatar_url, created_at FROM users WHERE id = ? OR nickname = ?",
+      "SELECT id, nickname, avatar_url, created_at FROM users WHERE id = ? OR nickname = ?",
       [id, id]
     );
 
@@ -19,77 +20,32 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    // Get messages owned by user
-    const messages = all(`
-      SELECT
-        m.id,
-        m.text,
-        m.price,
-        m.purchased_at,
-        m.owner_id
-      FROM messages m
-      WHERE m.owner_id = ?
-      ORDER BY m.id DESC
-    `, [user.id]);
-
-    // Get purchase stats
+    const now = Date.now();
     const stats = get(`
-      SELECT
-        COUNT(*) as purchase_count,
-        COALESCE(SUM(price), 0) as total_spent
-      FROM purchases
-      WHERE buyer_id = ?
-    `, [user.id]);
-
-    // Get badges from records
-    const badges = all(`
-      SELECT key, value FROM records WHERE holder_id = ?
-    `, [user.id]);
-
-    // Calculate longest hold from messages
-    let longestHold = 0;
-    for (const msg of messages) {
-      if (msg.purchased_at) {
-        const held = getHeldSeconds(msg.purchased_at);
-        if (held > longestHold) longestHold = held;
-      }
-    }
-
-    // Get earnings (when others bought messages the user owned)
-    const earnings = get(`
-      SELECT COALESCE(SUM(p.price), 0) as earned
-      FROM purchases p
-      JOIN messages m ON p.message_id = m.id
-      WHERE m.owner_id = ?
-    `, [user.id]);
+      SELECT COUNT(*) AS count,
+        COALESCE(SUM(CASE WHEN expires_at IS NULL OR expires_at > ? THEN 1 ELSE 0 END), 0) AS active,
+        COALESCE(SUM(CASE WHEN mode = 'permanent' THEN 1 ELSE 0 END), 0) AS permanent
+      FROM board_messages WHERE owner_id = ?
+    `, [now, user.id]);
 
     res.status(200).json({
       user: {
         id: user.id,
         nickname: user.nickname,
-        email: user.email,
         avatar_url: user.avatar_url,
         created_at: user.created_at,
       },
-      messages: messages.map((m) => ({
-        id: m.id,
-        text: m.text,
-        price: m.price,
-        purchased_at: m.purchased_at,
-        hold: m.purchased_at ? formatHeld(getHeldSeconds(m.purchased_at)) : "—",
-      })),
+      boardPlacements: all(`
+        SELECT id, mode, slot, text, price_cents, created_at, expires_at
+        FROM board_messages WHERE owner_id = ? ORDER BY id DESC LIMIT 100
+      `, [user.id]).map((item) => ({ ...item, expired: item.expires_at !== null && item.expires_at <= now })),
       stats: {
-        purchaseCount: stats.purchase_count,
-        totalSpent: Number(stats.total_spent).toFixed(2),
-        earned: Number(earnings.earned).toFixed(2),
-        longestHold: formatHeld(longestHold),
+        boardCount: stats.count,
+        activeCount: stats.active,
+        permanentCount: stats.permanent,
       },
-      badges: badges.map((b) => ({
-        key: b.key,
-        value: b.key === "longest_hold" ? formatHeld(b.value) : b.key === "highest_price" ? `$${b.value.toFixed(2)}` : b.value,
-      })),
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Unable to load profile." });
   }
 }

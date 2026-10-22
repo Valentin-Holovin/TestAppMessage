@@ -1,3 +1,7 @@
+import { safeReturnTo } from "../lib/navigation";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { getClientAuth, authError } from "../lib/firebase/client";
+import { useAuth } from "../components/auth/AuthProvider";
 import { useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
@@ -6,6 +10,7 @@ import { Button } from "../components/ui/button";
 
 export default function Register() {
   const router = useRouter();
+  const { syncProfile } = useAuth();
   const [form, setForm] = useState({ nickname: "", email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -16,23 +21,17 @@ export default function Register() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || "Registration failed");
-        return;
+      const nickname = form.nickname.trim();
+      if (nickname.length < 2 || nickname.length > 20) throw new Error("Nickname must be 2–20 characters.");
+      const auth = getClientAuth();
+      // Retry profile creation without creating a second Firebase account.
+      if (!auth.currentUser || auth.currentUser.email?.toLowerCase() !== form.email.trim().toLowerCase()) {
+        await createUserWithEmailAndPassword(auth, form.email.trim(), form.password);
       }
-
-      localStorage.setItem("user", JSON.stringify(data.user));
-      router.push("/");
-    } catch {
-      setError("Something went wrong");
+      await syncProfile(nickname);
+      router.push(safeReturnTo(router.query.next));
+    } catch (err) {
+      setError(authError(err));
     } finally {
       setLoading(false);
     }
@@ -42,7 +41,7 @@ export default function Register() {
     <>
       <Head>
         <title>Create Account — OneMessage</title>
-        <meta name="description" content="Create a OneMessage account to buy and own the internet's single public message." />
+        <meta name="description" content="Create a OneMessage account to publish on the temporary board or permanent wall." />
         <meta name="robots" content="noindex" />
         <link rel="canonical" href="https://onemessage.io/register" />
       </Head>
@@ -62,9 +61,9 @@ export default function Register() {
             Back
           </Link>
 
-          <div className="glass-strong rounded-3xl p-8 sm:p-10">
+          <div className="glass-strong rounded-none p-8 sm:p-10">
             <div className="mb-8 text-center">
-              <div className="mx-auto mb-5 grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-xl font-bold text-white shadow-[0_0_30px_rgba(99,102,241,0.4)]">
+              <div className="mx-auto mb-5 grid h-14 w-14 place-items-center rounded-none pixel-fill   text-xl font-bold text-white ">
                 1M
               </div>
               <h1 className="text-2xl font-bold text-white">Create account</h1>
@@ -74,45 +73,57 @@ export default function Register() {
             </div>
 
             {error && (
-              <div className="mb-6 rounded-2xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-300">
+              <div role="alert" className="mb-6 rounded-none border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-300">
                 {error}
               </div>
             )}
 
             <form onSubmit={handleRegister} className="space-y-4">
               <div>
-                <label className="mb-2 block text-sm font-medium text-white/50">
+                <label htmlFor="nickname" className="mb-2 block text-sm font-medium text-white/50">
                   Nickname
                 </label>
                 <input
+                  id="nickname"
+                  required
+                  minLength={2}
+                  maxLength={20}
+                  autoComplete="nickname"
                   value={form.nickname}
                   onChange={(e) => setForm({ ...form, nickname: e.target.value })}
                   placeholder="Choose a nickname"
-                  className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3.5 text-sm text-white placeholder-white/25 outline-none transition-all focus:border-indigo-400/50 focus:bg-white/[0.06] focus:ring-2 focus:ring-indigo-400/20"
+                  className="w-full rounded-none border border-white/10 bg-white/[0.04] px-4 py-3.5 text-sm text-white placeholder-white/25 outline-none transition-all focus:border-lime-300 focus:bg-white/[0.06] focus:ring-2 focus:ring-indigo-400/20"
                 />
               </div>
               <div>
-                <label className="mb-2 block text-sm font-medium text-white/50">
+                <label htmlFor="email" className="mb-2 block text-sm font-medium text-white/50">
                   Email
                 </label>
                 <input
                   type="email"
+                  id="email"
+                  autoComplete="email"
+                  required
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                   placeholder="you@example.com"
-                  className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3.5 text-sm text-white placeholder-white/25 outline-none transition-all focus:border-indigo-400/50 focus:bg-white/[0.06] focus:ring-2 focus:ring-indigo-400/20"
+                  className="w-full rounded-none border border-white/10 bg-white/[0.04] px-4 py-3.5 text-sm text-white placeholder-white/25 outline-none transition-all focus:border-lime-300 focus:bg-white/[0.06] focus:ring-2 focus:ring-indigo-400/20"
                 />
               </div>
               <div>
-                <label className="mb-2 block text-sm font-medium text-white/50">
+                <label htmlFor="password" className="mb-2 block text-sm font-medium text-white/50">
                   Password
                 </label>
                 <input
+                  id="password"
+                  required
+                  minLength={6}
+                  autoComplete="new-password"
                   type="password"
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
                   placeholder="At least 6 characters"
-                  className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3.5 text-sm text-white placeholder-white/25 outline-none transition-all focus:border-indigo-400/50 focus:bg-white/[0.06] focus:ring-2 focus:ring-indigo-400/20"
+                  className="w-full rounded-none border border-white/10 bg-white/[0.04] px-4 py-3.5 text-sm text-white placeholder-white/25 outline-none transition-all focus:border-lime-300 focus:bg-white/[0.06] focus:ring-2 focus:ring-indigo-400/20"
                 />
               </div>
               <Button type="submit" variant="gradient" className="mt-2 w-full h-14 px-8 text-base" disabled={loading}>
@@ -128,7 +139,7 @@ export default function Register() {
 
             <p className="text-center text-sm text-white/40">
               Already have an account?{" "}
-              <Link href="/login" className="font-medium text-indigo-400 transition hover:text-indigo-300">
+              <Link href={{ pathname: "/login", query: { next: safeReturnTo(router.query.next) } }} className="font-medium text-lime-300 transition hover:text-lime-300">
                 Sign in
               </Link>
             </p>
